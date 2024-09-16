@@ -1,10 +1,23 @@
 {
-  "name": "Hello Extensions",
-  "description": "Base Level Extension",
+  "name": "Colonist.io Resource Tracker",
   "version": "1.0",
+  "description": "Tracks resources of players in Colonist.io",
   "manifest_version": 3,
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
-    "default_popup": "hello.html",
-    "default_icon": "hello_extensions.png"
-  }
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://colonist.io/*"],
+      "js": ["content.js"]
+    }
+  ]
 }
