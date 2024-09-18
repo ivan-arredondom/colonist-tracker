@@ -1,22 +1,18 @@
 {
+  "manifest_version": 3,
   "name": "Colonist.io Resource Tracker",
   "version": "1.0",
-  "description": "Tracks resources of players in Colonist.io",
-  "manifest_version": 3,
-  "permissions": [
-    "activeTab",
-    "storage",
-    "scripting"
-  ],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "description": "Tracks resources of other players in Colonist.io",
+  "permissions": ["activeTab", "storage"],
   "action": {
     "default_popup": "popup.html"
   },
   "content_scripts": [
     {
-      "matches": ["*://colonist.io/*"],
+      "matches": [
+        "https://colonist.io/*",
+        "https://*.colonist.io/*"
+      ],
       "js": ["content.js"]
     }
   ]
