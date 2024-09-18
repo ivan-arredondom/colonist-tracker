@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
         for (const [player, resources] of Object.entries(result.players)) {
           const row = table.insertRow();
           row.insertCell().textContent = player;
-          row.insertCell().textContent = resources.wood;
+          row.insertCell().textContent = resources.lumber;
           row.insertCell().textContent = resources.brick;
           row.insertCell().textContent = resources.ore;
           row.insertCell().textContent = resources.grain;
