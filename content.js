@@ -21,6 +21,20 @@ function updateStorage() {
   });
 }
 
+function tradeResources(senderPlayer, receiverPlayer, senderResources, receiverResources) {
+  for (const resource in senderResources) {
+    players[senderPlayer][resource] -= senderResources[resource];
+    players[receiverPlayer][resource] += senderResources[resource];
+  }
+
+  for (const resource in receiverResources) {
+    players[receiverPlayer][resource] -= receiverResources[resource];
+    players[senderPlayer][resource] += receiverResources[resource];
+  }
+
+  updateStorage();
+}
+
 function processGameLogs() {
   const gameLog = document.getElementById('game-log-text');
   if (!gameLog) return;
@@ -45,7 +59,11 @@ function processGameLogs() {
           players[playerName][resourceType]++;
         }
       });
+    } else if (text.includes('gave')) { // Trade
+      
     } else if (text.includes('got')) {
+      console.log(message);
+      console.log(text);
       resourceImages.forEach(img => {
         const resourceType = img.alt;
         if (resourceType in players[playerName]) {
@@ -76,6 +94,7 @@ function processGameLogs() {
       players[playerName].unknown++;
       players[stolenFrom].unknown--;
     }
+    
 
     // // Ensure no negative values
     // for (const resource in players[playerName]) {
