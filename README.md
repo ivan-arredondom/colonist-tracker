@@ -6,6 +6,7 @@ This is a resource tracker for the game colonist.io
 - Keep track of anything that has been bought
 
 ## TODO:
+- [ ] Possible bug when receiving more than one resource of the same type (need to check)
 - [ ] Keep track of trades 
     - [ ] Track trades between players
     - [ ] Track trades with the bank
