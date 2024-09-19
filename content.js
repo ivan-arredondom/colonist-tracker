@@ -21,7 +21,7 @@ function updateStorage() {
   });
 }
 
-function tradeResources(senderPlayer, receiverPlayer, senderResources, receiverResources) {
+function tradeResourcesBetweenPlayers(senderPlayer, receiverPlayer, senderResources, receiverResources) {
   for (const resource in senderResources) {
     players[senderPlayer][resource] -= senderResources[resource];
     players[receiverPlayer][resource] += senderResources[resource];
@@ -31,6 +31,16 @@ function tradeResources(senderPlayer, receiverPlayer, senderResources, receiverR
     players[receiverPlayer][resource] -= receiverResources[resource];
     players[senderPlayer][resource] += receiverResources[resource];
   }
+
+  updateStorage();
+}
+
+function tradeResourcesWithBank(playerName, tradeResources, resourceFromBank) {
+  for (const resource in tradeResources) {
+    players[playerName][resource] -= tradeResources[resource];
+  }
+
+  players[playerName][resourceFromBank]++;
 
   updateStorage();
 }
@@ -60,10 +70,33 @@ function processGameLogs() {
         }
       });
     } else if (text.includes('gave')) { // Trade
-      
+      // Check if the trade is to the bank
+      if (text.includes('bank')) {
+        const tradeResources = [];
+        for(let i = 0; i < resourceImages.length - 1; i++){
+          tradeResources.push(resourceImages[i].alt);
+        }
+        // Last resource is from the bank
+        const resourceFromBank = resourceImages[resourceImages.length - 1].alt;
+
+        tradeResourcesWithBank(playerName, tradeResources, resourceFromBank);
+
+      } else{
+        console.log(message);
+        console.log(text);
+        const receiverPlayerMatch = text.match(/from (\S+)/);
+        const receiverPlayer = receiverPlayerMatch[1];
+        console.log(receiverPlayer);
+
+        const senderResources = [];
+        const receiverResources = [];
+        const resourcesGiven = [...text.matchAll(/gave\s+((?:<img[^>]+alt="(\w+)"[^>]*>)+)/g)];
+const resourcesReceived = [...text.matchAll(/got\s+((?:<img[^>]+alt="(\w+)"[^>]*>)+)/g)];
+        console.log(resourcesGiven);
+        console.log(resourcesReceived);
+        console.log(resourceImages);
+      }
     } else if (text.includes('got')) {
-      console.log(message);
-      console.log(text);
       resourceImages.forEach(img => {
         const resourceType = img.alt;
         if (resourceType in players[playerName]) {
@@ -113,6 +146,7 @@ function restartTracker() {
   chrome.storage.local.set({players: players}, function() {
     chrome.runtime.sendMessage({action: "updatePopup"});
   });
+  console.log('Tracker restarted');
 }
 
 // Initialize players when the script loads
