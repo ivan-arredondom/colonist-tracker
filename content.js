@@ -39,8 +39,6 @@ function tradeResourcesBetweenPlayers(senderPlayer, receiverPlayer, senderResour
 function tradeResourcesWithBank(playerName, tradeResources, resourceFromBank) {
   for (const resource in tradeResources) {
     players[playerName][tradeResources[resource]]--;
-    // Put a counter
-    console.log("Resource: " + tradeResources[0] + " Count: " + players[playerName][tradeResources[resource]]);
   }
 
   players[playerName][resourceFromBank]++;
@@ -88,6 +86,8 @@ receivedResources.push(img.alt);
   };
 }
 
+function checkForUnkwownResources(playerName) {}
+
 function processGameLogs() {
   const gameLog = document.getElementById('game-log-text');
   if (!gameLog) return;
@@ -99,7 +99,7 @@ function processGameLogs() {
     if (!playerMatch) return;
     
     const playerName = playerMatch[1];
-    if (playerName.toLowerCase() === 'happy') return; // Ignore if the player's name is "happy"
+    if (playerName.toLowerCase() === 'happy' || playerName.toLowerCase() === 'bot') return; // Ignore if the player's name is "happy"
     if (!players[playerName]){
       // Initialize player if they don't exist and account for first strutures
       players[playerName] = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
@@ -125,11 +125,9 @@ function processGameLogs() {
         tradeResourcesWithBank(playerName, tradeResources, resourceFromBank);
 
       } else{
-        console.log(message);
-        console.log(text);
 
         const { senderPlayerName, receiverPlayerName, givenResources, receivedResources } = extractTradeResources(message);
-        
+
         tradeResourcesBetweenPlayers(senderPlayerName, receiverPlayerName, givenResources, receivedResources);
       }
     } else if (text.includes('got')) {
@@ -162,6 +160,13 @@ function processGameLogs() {
       const stolenFrom = text.match(/from (\S+)/)[1];
       players[playerName].unknown++;
       players[stolenFrom].unknown--;
+    } else if (text.includes('discarded')) {
+      resourceImages.forEach(img => {
+        const resourceType = img.alt;
+        if (resourceType in players[playerName]) {
+          players[playerName][resourceType]--;
+        }
+      });
     }
     
 

@@ -9,6 +9,7 @@ This is a resource tracker for the game colonist.io
 - [ ] Possible bug when receiving more than one resource of the same type (need to check)
 - [ ] Fix Bug Where a player disconnects and the Bot acts as that player
 - [ ] Fix Bug where "you" steal a card
+- [ ] Fix Bug where Bot selects cards
 - [x] Keep track of trades 
     - [x] Track trades between players
     - [x] Track trades with the bank
