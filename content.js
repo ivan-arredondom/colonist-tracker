@@ -22,14 +22,15 @@ function updateStorage() {
 }
 
 function tradeResourcesBetweenPlayers(senderPlayer, receiverPlayer, senderResources, receiverResources) {
+  // For some reason resource is a number, so "senderResources[resource]" get's the resource name
   for (const resource in senderResources) {
-    players[senderPlayer][resource] -= senderResources[resource];
-    players[receiverPlayer][resource] += senderResources[resource];
+    players[senderPlayer][senderResources[resource]]--;
+    players[receiverPlayer][senderResources[resource]]++;
   }
 
   for (const resource in receiverResources) {
-    players[receiverPlayer][resource] -= receiverResources[resource];
-    players[senderPlayer][resource] += receiverResources[resource];
+    players[receiverPlayer][receiverResources[resource]]--;
+    players[senderPlayer][receiverResources[resource]]++;
   }
 
   updateStorage();
@@ -37,12 +38,54 @@ function tradeResourcesBetweenPlayers(senderPlayer, receiverPlayer, senderResour
 
 function tradeResourcesWithBank(playerName, tradeResources, resourceFromBank) {
   for (const resource in tradeResources) {
-    players[playerName][resource] -= tradeResources[resource];
+    players[playerName][tradeResources[resource]]--;
+    // Put a counter
+    console.log("Resource: " + tradeResources[0] + " Count: " + players[playerName][tradeResources[resource]]);
   }
 
   players[playerName][resourceFromBank]++;
 
   updateStorage();
+}
+
+function extractTradeResources(messageElement) {
+  const text = messageElement.textContent;
+  
+  // Extract player names
+  const senderPlayerMatch = text.match(/^(\S+)/);
+  const senderPlayerName = senderPlayerMatch ? senderPlayerMatch[1] : null;
+  const receiverPlayerMatch = text.match(/from (\S+)/);
+  const receiverPlayerName = receiverPlayerMatch ? receiverPlayerMatch[1] : null;
+
+  // Initialize resource lists
+  const givenResources = [];
+  const receivedResources = [];
+
+  // Get all resource images
+  const resourceImages = messageElement.querySelectorAll('img.lobby-chat-text-icon');
+
+// Flag to know when to switch to the second list
+let addingToFirstList = true;
+
+resourceImages.forEach((img) => {
+  if (addingToFirstList) {
+    givenResources.push(img.alt);
+// Check if the next sibling contains the "and got" text
+if (img.nextSibling && img.nextSibling.textContent.includes('and got')) {
+  addingToFirstList = false; // Switch to the second list after "and got"
+}
+} else {
+// After "and got", add images to the second list
+receivedResources.push(img.alt);
+}
+});
+
+  return {
+    senderPlayerName,
+    receiverPlayerName,
+    givenResources,
+    receivedResources
+  };
 }
 
 function processGameLogs() {
@@ -84,17 +127,10 @@ function processGameLogs() {
       } else{
         console.log(message);
         console.log(text);
-        const receiverPlayerMatch = text.match(/from (\S+)/);
-        const receiverPlayer = receiverPlayerMatch[1];
-        console.log(receiverPlayer);
 
-        const senderResources = [];
-        const receiverResources = [];
-        const resourcesGiven = [...text.matchAll(/gave\s+((?:<img[^>]+alt="(\w+)"[^>]*>)+)/g)];
-const resourcesReceived = [...text.matchAll(/got\s+((?:<img[^>]+alt="(\w+)"[^>]*>)+)/g)];
-        console.log(resourcesGiven);
-        console.log(resourcesReceived);
-        console.log(resourceImages);
+        const { senderPlayerName, receiverPlayerName, givenResources, receivedResources } = extractTradeResources(message);
+        
+        tradeResourcesBetweenPlayers(senderPlayerName, receiverPlayerName, givenResources, receivedResources);
       }
     } else if (text.includes('got')) {
       resourceImages.forEach(img => {
