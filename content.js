@@ -241,7 +241,16 @@ function processGameLogs() {
           players[playerName][resourceType]--;
         }
       });
+    } else if (text.includes('took from bank')) {
+      if (playerName.toLowerCase() === 'you') {
+        playerName = mainPlayerName;
+      }
+      resourceImages.forEach(img => {
+        const resourceType = img.alt;
+        players[playerName][resourceType]++;
+      });
     }
+
     
 
     // // Ensure no negative values
