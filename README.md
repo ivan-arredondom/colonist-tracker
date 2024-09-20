@@ -15,4 +15,7 @@ This is a resource tracker for the game colonist.io
 - [ ] Keep track of unkwown cards
     - [ ] Calculate which card someone stole
     - [ ] Subtract unkwown card instead of making a resource negative
+- [ ] Add support for monopoly card
+    - [ ] Make sure to subtract if possible
+- [ ] Add support for adding roads via development cards
 - [ ] Change UI to hover instead of a popup
