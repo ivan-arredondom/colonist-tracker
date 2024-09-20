@@ -7,6 +7,14 @@ const costs = {
   developmentCard: { wool: 1, grain: 1, ore: 1 }
 };
 
+function validPlayerName(playerName) {
+  playerName = playerName.toLowerCase();
+  if (playerName === 'you' || playerName === 'bot' || playerName === 'happy') {
+    return false;
+  }
+  return true;
+}
+
 function initializePlayers() {
   const initialResources = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
   document.querySelectorAll('.color_row').forEach(row => {
@@ -86,6 +94,36 @@ receivedResources.push(img.alt);
   };
 }
 
+function subtractResourceFromPlayer(playerName, resource) {
+  // Check if the player has enough of resource type
+  if (players[playerName][resource] > 0) {
+    players[playerName][resource]--;
+    return;
+  }
+  players[playerName].unknown--;
+  players[playerName][resource]++;
+}
+
+function playerBuildItem(playerName, builtItem){
+  // If the player has enough resources to buy the item, then assume that pays with knwown resources and return
+  if (builtItem === 'road') {
+    subtractResourceFromPlayer(playerName, 'lumber');
+    subtractResourceFromPlayer(playerName, 'brick');
+  } else if (builtItem === 'settlement') {
+    subtractResourceFromPlayer(playerName, 'lumber');
+    subtractResourceFromPlayer(playerName, 'brick');
+    subtractResourceFromPlayer(playerName, 'grain');
+    subtractResourceFromPlayer(playerName, 'wool');
+  } else if (builtItem === 'city') {
+    subtractResourceFromPlayer(playerName, 'grain');
+    subtractResourceFromPlayer(playerName, 'grain');
+    subtractResourceFromPlayer(playerName, 'ore');
+    subtractResourceFromPlayer(playerName, 'ore');
+    subtractResourceFromPlayer(playerName, 'ore');
+  }
+
+}
+
 function getMainPlayerName() {
   const username = document.getElementById('header_profile_username').textContent.trim();
   if (!username) return;
@@ -105,7 +143,7 @@ function processGameLogs() {
     if (!playerMatch) return;
     
     let playerName = playerMatch[1];
-    if (playerName.toLowerCase() === 'happy' || playerName.toLowerCase() === 'bot') return; // Ignore if the player's name is "happy"
+    if (!validPlayerName(playerName)) return; 
     if (!players[playerName]){
       // Initialize player if they don't exist and account for first strutures
       players[playerName] = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
@@ -146,37 +184,30 @@ function processGameLogs() {
     } else if (text.includes('placed') || text.includes('built')) {
       // We can assume that there is only one thing being built at a time
       const builtItem = resourceImages[0].alt;
-      if (builtItem === 'road') {
-        players[playerName].lumber--;
-        players[playerName].brick--;
-      } else if (builtItem === 'settlement') {
-        players[playerName].lumber--;
-        players[playerName].brick--;
-        players[playerName].grain--;
-        players[playerName].wool--;
-      } else if (builtItem === 'city') {
-        players[playerName].grain -= 2;
-        players[playerName].ore -= 3;
-      }
+      playerBuildItem(playerName, builtItem);
     } else if (text.includes('bought')) {
-      players[playerName].wool--;
-      players[playerName].grain--;
-      players[playerName].ore--;
+      subtractResourceFromPlayer(playerName, 'wool');
+      subtractResourceFromPlayer(playerName, 'grain');
+      subtractResourceFromPlayer(playerName, 'ore');
     } else if (text.includes('stole')) {
       let stolenFrom = text.match(/from (\S+)/)[1];
-      console.log("Stolen from: " + stolenFrom);
-      console.log("Stolen by : " + playerName);
       if(playerName.toLowerCase() === 'you'){
-        playerName = mainPlayerName;
+        playerName = mainPlayerName; // We know what was stolen, no need to use unkwown
+        const stolenItem = resourceImages[0].alt;
+        players[playerName][stolenItem]++;
+        players[stolenFrom][stolenItem]--;
       }
       else if(stolenFrom.toLowerCase() === 'you'){
         stolenFrom = mainPlayerName;
+        const stolenItem = resourceImages[0].alt;
+        players[playerName][stolenItem]++;
+        players[stolenFrom][stolenItem]--;
       }
-      console.log("Stolen from (renamed): " + stolenFrom);
-      console.log("Stolen by (renamed): " + playerName);
-      console.log("main player name: " + mainPlayerName);
-      players[playerName].unknown++;
-      players[stolenFrom].unknown--;
+      else{
+        players[playerName].unknown++;
+        players[stolenFrom].unknown--;
+      }
+      
     } else if (text.includes('discarded')) {
       if (playerName.toLowerCase() === 'you') {
         playerName = mainPlayerName;
