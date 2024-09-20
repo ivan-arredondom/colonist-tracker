@@ -16,7 +16,7 @@ function validPlayerName(playerName) {
 }
 
 function initializePlayers() {
-  const initialResources = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
+  const initialResources = { lumber: 0, brick: 0, ore: 0, grain: 0, wool: 0, unknown: 0 };
   document.querySelectorAll('.color_row').forEach(row => {
     const playerName = row.querySelector('.color_row_name').textContent.trim();
     players[playerName] = {...initialResources};
@@ -177,7 +177,7 @@ function processGameLogs() {
     if (!validPlayerName(playerName)) return; 
     if (!players[playerName] && playerName.toLowerCase() !== 'you') {
       // Initialize player if they don't exist and account for first strutures
-      players[playerName] = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
+      players[playerName] = { lumber: 0, brick: 0, ore: 0, grain: 0, wool: 0, unknown: 0 };
     } 
 
     if (text.includes('received starting resources')) {
@@ -212,7 +212,7 @@ function processGameLogs() {
           players[playerName][resourceType]++;
         }
       });
-    } else if (text.includes('placed') || text.includes('built')) {
+    } else if (text.includes('built')) {
       // We can assume that there is only one thing being built at a time
       const builtItem = resourceImages[0].alt;
       playerBuildItem(playerName, builtItem);
