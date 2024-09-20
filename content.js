@@ -9,7 +9,7 @@ const costs = {
 
 function validPlayerName(playerName) {
   playerName = playerName.toLowerCase();
-  if (playerName === 'you' || playerName === 'bot' || playerName === 'happy') {
+  if ( playerName === 'bot' || playerName === 'happy') {
     return false;
   }
   return true;
@@ -130,6 +130,37 @@ function getMainPlayerName() {
   return username;
 }
 
+// TODO: check how to incorporate unkwown resources here
+function useMonopolyDevelopmentCard(playerName, resourceType, amount) {
+  players[playerName][resourceType] += amount;
+  for (const player in players) {
+    if (player === playerName) continue;
+    players[player][resourceType] = 0;
+  }
+  updateStorage();
+}
+
+function stealResourceFromAnotherPlayer(playerName, stolenFrom, resourceImages) {
+  const mainPlayerName = getMainPlayerName();
+  if(playerName.toLowerCase() === 'you'){
+    playerName = mainPlayerName; // We know what was stolen, no need to use unkwown
+    const stolenItem = resourceImages[0].alt;
+    players[playerName][stolenItem]++;
+    players[stolenFrom][stolenItem]--;
+  }
+  else if(stolenFrom.toLowerCase() === 'you'){
+    stolenFrom = mainPlayerName;
+    const stolenItem = resourceImages[0].alt;
+    players[playerName][stolenItem]++;
+    players[stolenFrom][stolenItem]--;
+  }
+  else{
+    players[playerName].unknown++;
+    players[stolenFrom].unknown--;
+  }
+  updateStorage();
+}
+
 function processGameLogs() {
   const gameLog = document.getElementById('game-log-text');
   if (!gameLog) return;
@@ -144,7 +175,7 @@ function processGameLogs() {
     
     let playerName = playerMatch[1];
     if (!validPlayerName(playerName)) return; 
-    if (!players[playerName]){
+    if (!players[playerName] && playerName.toLowerCase() !== 'you') {
       // Initialize player if they don't exist and account for first strutures
       players[playerName] = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
     } 
@@ -189,25 +220,17 @@ function processGameLogs() {
       subtractResourceFromPlayer(playerName, 'wool');
       subtractResourceFromPlayer(playerName, 'grain');
       subtractResourceFromPlayer(playerName, 'ore');
-    } else if (text.includes('stole')) {
-      let stolenFrom = text.match(/from (\S+)/)[1];
-      if(playerName.toLowerCase() === 'you'){
-        playerName = mainPlayerName; // We know what was stolen, no need to use unkwown
-        const stolenItem = resourceImages[0].alt;
-        players[playerName][stolenItem]++;
-        players[stolenFrom][stolenItem]--;
-      }
-      else if(stolenFrom.toLowerCase() === 'you'){
-        stolenFrom = mainPlayerName;
-        const stolenItem = resourceImages[0].alt;
-        players[playerName][stolenItem]++;
-        players[stolenFrom][stolenItem]--;
-      }
-      else{
-        players[playerName].unknown++;
-        players[stolenFrom].unknown--;
-      }
-      
+    } else if (text.includes('stole')) { // TODO: Account for stealing using monopoly card
+      console.log(text);
+        console.log(resourceImages[0].alt);
+      // Case when the player stole uses the monopoly card to steal from everyone
+      if(!text.includes('from')){
+        const amount = Number(text.split(' ')[2]);
+        useMonopolyDevelopmentCard(playerName, resourceImages[0].alt, amount);
+      } else{
+        let stolenFrom = text.match(/from (\S+)/)[1];
+        stealResourceFromAnotherPlayer(playerName, stolenFrom, resourceImages);
+      }  
     } else if (text.includes('discarded')) {
       if (playerName.toLowerCase() === 'you') {
         playerName = mainPlayerName;
