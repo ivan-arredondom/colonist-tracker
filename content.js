@@ -8,7 +8,7 @@ const costs = {
 };
 
 function initializePlayers() {
-  const initialResources = { lumber: 0, brick: 0, ore: 0, grain: 0, wool: 0, unknown: 0 };
+  const initialResources = { lumber: 4, brick: 4, ore: 0, grain: 2, wool: 2, unknown: 0 };
   document.querySelectorAll('.color_row').forEach(row => {
     const playerName = row.querySelector('.color_row_name').textContent.trim();
     players[playerName] = {...initialResources};
@@ -86,11 +86,17 @@ receivedResources.push(img.alt);
   };
 }
 
-function checkForUnkwownResources(playerName) {}
+function getMainPlayerName() {
+  const username = document.getElementById('header_profile_username').textContent.trim();
+  if (!username) return;
+  return username;
+}
 
 function processGameLogs() {
   const gameLog = document.getElementById('game-log-text');
   if (!gameLog) return;
+
+  const mainPlayerName = getMainPlayerName();
 
   gameLog.querySelectorAll('.message-post').forEach(message => {
     const text = message.textContent;
@@ -98,7 +104,7 @@ function processGameLogs() {
     const playerMatch = text.match(/^(\S+)/);
     if (!playerMatch) return;
     
-    const playerName = playerMatch[1];
+    let playerName = playerMatch[1];
     if (playerName.toLowerCase() === 'happy' || playerName.toLowerCase() === 'bot') return; // Ignore if the player's name is "happy"
     if (!players[playerName]){
       // Initialize player if they don't exist and account for first strutures
@@ -157,10 +163,24 @@ function processGameLogs() {
       players[playerName].grain--;
       players[playerName].ore--;
     } else if (text.includes('stole')) {
-      const stolenFrom = text.match(/from (\S+)/)[1];
+      let stolenFrom = text.match(/from (\S+)/)[1];
+      console.log("Stolen from: " + stolenFrom);
+      console.log("Stolen by : " + playerName);
+      if(playerName.toLowerCase() === 'you'){
+        playerName = mainPlayerName;
+      }
+      else if(stolenFrom.toLowerCase() === 'you'){
+        stolenFrom = mainPlayerName;
+      }
+      console.log("Stolen from (renamed): " + stolenFrom);
+      console.log("Stolen by (renamed): " + playerName);
+      console.log("main player name: " + mainPlayerName);
       players[playerName].unknown++;
       players[stolenFrom].unknown--;
     } else if (text.includes('discarded')) {
+      if (playerName.toLowerCase() === 'you') {
+        playerName = mainPlayerName;
+      }
       resourceImages.forEach(img => {
         const resourceType = img.alt;
         if (resourceType in players[playerName]) {
